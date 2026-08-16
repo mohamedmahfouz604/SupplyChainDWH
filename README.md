@@ -1,635 +1,543 @@
-# SupplyChainDWH – Supply Chain Data Warehouse & Power BI Dashboard
+# 📊 SupplyChainDWH – Supply Chain Analytics Dashboard
 
 ## 📌 Project Overview
 
-**SupplyChainDWH** is an end-to-end Data Warehouse and Business Intelligence project built to analyze supply chain, sales, customers, products, salesmen, and logistics performance.
+SupplyChainDWH is an end-to-end Business Intelligence project developed to analyze Supply Chain data and transform it into meaningful and interactive business insights.
 
-The project follows a **Medallion Architecture**:
+The project combines:
 
-**Bronze → Silver → Gold → Power BI**
+- SQL
+- Data Cleaning
+- Data Transformation
+- Data Warehouse Modeling
+- Dimensional Modeling
+- DAX
+- Power BI
+- Data Visualization
+- Business Analysis
 
-The main goal was to transform raw supply chain data into a clean analytical model and build an interactive Power BI dashboard that answers important business questions related to:
+The final result is an interactive Power BI dashboard covering five major areas:
 
-- Sales & Revenue
-- Profitability
-- Customers
-- Products
-- Salesmen Performance
-- Shipping & Delivery
-- Markets & Regions
-- Business Trends
+1. Overview
+2. Customer Analysis
+3. Products Analysis
+4. Sales & Logistics
+5. Salesman Analysis
+
+This project was developed as the **final project during my training journey**.
 
 ---
 
-# 🏗️ Architecture
+# 🎯 Project Objective
+
+The main objective of the project was to transform raw Supply Chain data into a structured analytical solution that can help answer important business questions.
+
+The analysis focuses on:
+
+- Overall business performance
+- Revenue and profit
+- Customer behavior
+- Product performance
+- Market performance
+- Logistics and delivery performance
+- Salesman performance
+
+The project also focuses on going beyond visualization by investigating unusual patterns in the data and understanding what is happening behind the KPIs.
+
+---
+
+# 🏗️ Data Warehouse Architecture
+
+The project follows a layered Data Warehouse architecture:
 
 ```text
-Raw Source Data
-      │
-      ▼
-┌─────────────┐
-│   Bronze    │
-│ Raw Data    │
-└──────┬──────┘
-       │
-       │ Cleaning & Transformation
-       ▼
-┌─────────────┐
-│   Silver    │
-│ Clean Data  │
-└──────┬──────┘
-       │
-       │ Dimensional Modeling
-       ▼
-┌─────────────┐
-│    Gold     │
-│ Star Schema │
-└──────┬──────┘
-       │
-       ▼
-┌─────────────┐
-│  Power BI   │
-│ Dashboard   │
-└─────────────┘
-```
-🛠️ Tools & Technologies
-SQL Server
-T-SQL
+Raw Data
+   ↓
+Bronze Layer
+   ↓
+Silver Layer
+   ↓
+Gold Layer
+   ↓
 Power BI
-DAX
-Star Schema
-Medallion Architecture
-Power BI Data Modeling
-🥉 Bronze Layer
+```
+Bronze Layer
 
-The Bronze layer stores the raw source data with minimal transformation.
+The Bronze layer stores the source data in its raw form.
 
-The purpose of this layer is to preserve the original data and provide a reliable source for the following transformation stages.
+The main purpose is to preserve the original source data before applying transformations.
 
-Example source entities include:
+Silver Layer
 
-Customers
-Products
-Salesmen
-Orders
-Order Items
-Order Dates
-Shipping Dates
-🥈 Silver Layer
+The Silver layer is responsible for data preparation and cleaning.
 
-The Silver layer contains cleaned and standardized data.
-
-Main transformations included:
+Main transformations include:
 
 Data type conversion
-Cleaning inconsistent values
-Standardizing column names
-Handling duplicate column definitions
-Preparing business-ready tables
-Preserving the required records from Bronze
+Trimming spaces
+Handling missing values
+Removing duplicates
+Standardizing values
+Cleaning categorical fields
+Preparing data for dimensional modeling
 
-A major validation step was performed to make sure the Silver layer retained the expected data without unintended row loss.
+Examples of standardized fields include:
 
-🥇 Gold Layer
-
-The Gold layer was designed specifically for analytics and Power BI.
-
-A Star Schema was used, consisting of:
-
-Dimension Tables
-```text
-DimCustomers
-DimProducts
-DimSalesman
-DimOrderDate
-DimShippingDate
-```
-Fact Table
-```text
-FactOrders
-```
-⭐ Gold Layer Model
-DimCustomers
-
-Contains customer-related analytical attributes.
-
-Main columns:
-
-Customer_Id
-Customer_Full_Name
-Customer_Birth_Date
-Customer_Street
-Customer_City
-Customer_State
-Customer_Country
-Customer_Segment
-Latitude
-Longitude
-Data Privacy
-
-Sensitive customer information was intentionally excluded from the Gold layer:
-
-Email
-Password
-
-The ZIP Code was also excluded because it was not considered useful for the intended analysis.
-
-DimProducts
-
-The product structure was kept as a single analytical dimension rather than splitting Product, Category, and Department into separate dimensions.
-
-Main columns:
-
-Product_Card_Id
-Product_Name
-Product_Price
-Product_Status
-Product_Description
-Category_Id
-Category_Name
-Department_Id
-Department_Name
-
-This structure makes it easy to analyze revenue across:
-```text
-Department
-    ↓
-Category
-    ↓
-Product
-```
-DimSalesman
-
-Contains sales representative information used for performance analysis.
-
-Main columns:
-
-Salesman_Id
-Salesman_Full_Name
+Delivery Status
+Shipping Mode
 Market
 Region
-Hire_Date
-Commission_Rate
+Customer Segment
+Gold Layer
 
-Salesman email was excluded because it has no analytical value for the dashboard.
+The Gold layer contains the final analytical model used by Power BI.
 
-DimOrderDate
+The model follows a dimensional modeling approach using a Star Schema.
 
-Dedicated date dimension for order analysis.
+Fact Table
+Gold FactOrders
+Dimension Tables
+Gold DimCustomers
+Gold DimProducts
+Gold DimSalesman
+Gold DimOrderDate
+Gold DimShippingDate
+⭐ Star Schema
 
-Main columns:
-
-Date_Key
-Full_Date
-Day
-Month
-Month_Name
-Quarter
-Year
-DimShippingDate
-
-A separate date dimension was created for shipping analysis.
-
-Main columns:
-
-Date_Key
-Full_Date
-Day
-Month
-Month_Name
-Quarter
-Year
-
-Having separate Order Date and Shipping Date dimensions allows the model to analyze sales timing and shipping timing independently.
-
-📦 FactOrders
-
-FactOrders represents the transactional/order-item level of the business process.
-
-Main fields include:
-
-Order_Id
-Order_Item_Id
-Customer_Id
-Product_Card_Id
-Salesman_Id
-Order_Date_Key
-Shipping_Date_Key
-Order_Item_Quantity
-Order_Item_Discount
-Order_Item_Total
-Order_Item_Profit_Ratio
-Benefit_per_order
-Shipping_Mode
-Delivery_Status
-Days_for_shipment_scheduled
-Days_for_shipping_real
-Late_delivery_risk
-Order_Status
-Order_Region
-Order_State
-Market
-Type
-Important Modeling Decision
-
-Order_Item_Id was treated as an order-item identifier, not as a Product ID.
-
-One order can contain multiple order items, therefore the fact table operates at the order-item level.
-
-For example:
+The main structure can be summarized as:
 ```text
-Order 1001
- ├── Order Item 1 → Product A
- ├── Order Item 2 → Product B
- └── Order Item 3 → Product C
+                  DimCustomers
+                       |
+                       |
+DimOrderDate ---- FactOrders ---- DimProducts
+                       |
+                       |
+                 DimSalesman
+                       |
+                       |
+                DimShippingDate
 ```
-This allows detailed analysis of products, quantities, revenue, discounts, and profitability.
+The Fact table contains order-level and order-item-level transactional information used for analysis.
 
-📊 Data Volume
+📊 Power BI Dashboard
 
-The Gold layer contains approximately:
+The Power BI report contains five main analytical pages.
 
-Table	Rows
-DimCustomers	20,652
-DimProducts	118
-DimSalesman	603
-DimOrderDate	1,127
-DimShippingDate	1,131
-FactOrders	180,519
+1. 📈 Overview
 
-The fact table contains order-item level records, so the number of fact rows is higher than the number of distinct orders.
-
-📈 Power BI Dashboard
-
-The final Power BI report contains 5 analytical pages:
-
-Overview
-Customer
-Products
-Sales & Logistics
-Salesman
-
-The dashboard was designed so that the Overview page gives a quick business summary, while the other pages provide deeper analysis.
-
-1️⃣ Overview
-
-The Overview page provides a high-level view of the business.
-
-KPIs
-Total Revenue
-Total Orders
-Total Customers
-Total Profit
-Late Delivery Rate
-Visualizations
+The Overview page provides a high-level view of the overall business.
+```text
+| KPI                |  Value |
+| ------------------ | -----: |
+| Total Revenue      | 33.05M |
+| Total Profit       |  3.97M |
+| Total Orders       |    66K |
+| Total Customers    |    21K |
+| Late Delivery Rate | 54.82% |
+```
+Main Visuals
 Revenue Trend
-
-Shows how revenue changes over time.
-
 Revenue by Market
-
-Shows the contribution of each market to total revenue.
-
-Markets were grouped into:
-
-Europe
-LATAM
-Pacific Asia
-USCA
-Africa
 Delivery Status
+Time Filter
 
-Shows the distribution of orders across:
+The purpose of this page is to provide a quick summary before moving into detailed analysis.
 
-Late Delivery
-Advance Shipping
-Shipping on Time
-Shipping Cancelled
-Key Business Questions
-How much revenue is being generated?
-How profitable is the business?
-How many orders and customers are being served?
-Which markets generate the most revenue?
-How significant is the delivery problem?
-2️⃣ Customer Analysis
+2. 👥 Customer Analysis
 
-The Customer page focuses on customer segmentation and geographic distribution.
+The Customer page focuses on customer distribution and contribution to revenue.
 
-Visualizations
+Main Analysis
 Customer Distribution by Segment
-
-Shows the customer mix across:
-
-Consumer
-Corporate
-Home Office
-Revenue by Segment
-
-Compares revenue generated by each customer segment.
-
+Revenue by Customer Segment
 Customers by Country
-
-Shows customer concentration by country.
-
-Top 5 States
-
-Identifies the states with the highest number of customers.
-
-Customer Geographic Map
-
-Displays the geographical distribution of customers using latitude and longitude.
-
-Key Business Questions
-Which customer segment is the largest?
-Which segment generates the most revenue?
-Where are customers concentrated?
-Which states contain the largest customer base?
-Where are customers geographically distributed?
-3️⃣ Products Analysis
-
-The Products page focuses on product portfolio performance.
-
-KPIs
-Total Products
-Total Categories
-Total Quantity
-Visualizations
-Revenue by Department
-
-Identifies the departments generating the highest revenue.
-
-Top 10 Products by Revenue
-
-Highlights the best-performing products.
-
-Revenue by Category
-
-Compares revenue generated across product categories.
-
-Key Business Questions
-Which departments drive the most revenue?
-Which products are the top revenue generators?
-Which categories contribute most to sales?
-How large is the product portfolio?
-Which product categories may require more attention?
-4️⃣ Sales & Logistics
-
-This page combines sales performance with shipping and delivery analysis.
-
-KPIs
-Total Revenue
-Total Profit
-Total Orders
-Late Delivery Rate
-Visualizations
-Revenue by Market
-
-Compares revenue across the major market groups.
-
-Revenue Trend
-
-Shows revenue development over time.
-
-Late Delivery Rate by Shipping Mode
-
-Compares delivery performance across:
-
-First Class
-Second Class
-Same Day
-Standard Class
-Actual vs Scheduled Shipping
-
-Compares:
-
-Average Actual Shipping Days
-Average Scheduled Shipping Days
-
-This helps identify differences between planned and actual shipping performance.
-
-Key Business Questions
-Which markets generate the most revenue?
-How does revenue change over time?
-Which shipping modes have the highest late-delivery rate?
-Are actual shipping times higher than scheduled times?
-Where are the major logistics issues?
-5️⃣ Salesman Analysis
-
-The Salesman page focuses on individual sales representative performance.
-
-KPIs
-Total Salesmen
-Average Revenue per Salesman
-Average Profit per Salesman
-Visualizations
-Top 10 Salesmen by Revenue
-
-Identifies the salesmen generating the highest revenue.
-
-Top 10 Salesmen by Profit
-
-Identifies the salesmen generating the highest profit.
-
-Revenue by Region
-
-Shows revenue contribution across sales regions.
-
-Commission Rate vs Revenue
-
-A scatter chart was used to investigate:
-
-Does a higher commission rate correspond to higher revenue?
-
-The chart uses:
-
-X-Axis → Commission Rate
-Y-Axis → Total Revenue
-Details → Salesman Full Name
-
-This provides a way to identify patterns and potential outliers between commission rates and revenue performance.
-📐 DAX Measures
-
-Several DAX measures were created to support the analysis.
-
-Examples include:
+Top States
+Customer Geographic Distribution
+Customer Segment Distribution
 ```text
-Total Revenue =
-SUM('Gold FactOrders'[Order_Item_Total])
-
-Total Profit =
-SUM('Gold FactOrders'[Benefit_per_order])
-
-Total Orders =
-DISTINCTCOUNT('Gold FactOrders'[Order_Id])
-
-Total Customers =
-DISTINCTCOUNT('Gold FactOrders'[Customer_Id])
-
-Total Salesmen =
-DISTINCTCOUNT('Gold DimSalesman'[Salesman_Id])
-
-Total Quantity =
-SUM('Gold FactOrders'[Order_Item_Quantity])
+| Segment     |  Share |
+| ----------- | -----: |
+| Consumer    | 51.79% |
+| Corporate   | 30.21% |
+| Home Office | 18.00% |
 ```
-The dashboard also includes measures for:
+The Consumer segment represents the largest customer group.
 
-Average Revenue per Salesman
-Average Profit per Salesman
-Late Delivery Rate
-Revenue by market
-Revenue by region
-Revenue by product
-Revenue by category
-Revenue by department
-🎯 Business Results
+It is also the largest contributor to total revenue.
 
-The final dashboard provides several important observations.
+Key Observation
 
-Overall Business Performance
+The analysis shows that customer activity is concentrated in specific segments and geographic areas.
 
-The dataset contains approximately:
+This allows the business to understand where its customer base is strongest and which customer groups contribute most to revenue.
 
-33.05M Total Revenue
-3.97M Total Profit
-66K Total Orders
-21K Total Customers
-384K Total Quantity
-Customer Insights
+3. 📦 Products Analysis
 
-The Consumer segment represents the largest customer segment and also generates the highest revenue among the three customer segments.
+The Products page focuses on product portfolio and revenue contribution.
 
-Customer concentration is particularly strong in the United States, with additional customer presence in Puerto Rico.
+KPIs
+```text
+| KPI                 |  Value |
+| ------------------- | -----: |
+| Total Products      |    118 |
+| Total Categories    |     51 |
+| Total Quantity      |   384K |
+| Average Order Value | 502.71 |
+```
+Main Visuals
+Revenue by Department
+Top 10 Products by Revenue
+Revenue by Category
+Department Performance
 
-Product Insights
+The Fan Shop department is the highest revenue-generating department in the displayed analysis.
 
-The product portfolio contains:
+Other major departments include:
 
-118 Products
-51 Categories
+Apparel
+Golf
+Footwear
+Category Performance
 
-Revenue is concentrated in a relatively small number of departments and products.
+Fishing is one of the strongest revenue-generating categories in the analysis.
 
-The Top 10 Products analysis highlights the products contributing the most revenue.
+The Top 10 Products visualization also shows that revenue is concentrated among a smaller group of products.
 
-Salesman Insights
+4. 🚚 Sales & Logistics
 
-The Salesman analysis shows differences in performance across sales representatives.
+The Sales & Logistics page combines sales performance with delivery and shipping analysis.
 
-The Top 10 Salesmen by Revenue and Top 10 Salesmen by Profit provide two different views of sales performance, allowing high-revenue and high-profit performers to be identified separately.
+KPIs
+```text
+| KPI                |  Value |
+| ------------------ | -----: |
+| Total Revenue      | 33.05M |
+| Total Profit       |  3.97M |
+| Total Orders       |    66K |
+| Late Delivery Rate | 54.82% |
+```
+Main Visuals
+Revenue by Market
+Revenue Trend
+Late Delivery Rate by Shipping Mode
+Actual vs Scheduled Shipping Days
+🌍 Revenue by Market
 
-The Commission Rate vs Revenue scatter plot provides an additional analytical perspective on the relationship between salesperson compensation and revenue.
+The displayed revenue distribution is:
+```text
+| Market       | Revenue Share |
+| ------------ | ------------: |
+| Europe       |        29.55% |
+| LATAM        |        27.94% |
+| Pacific Asia |        22.49% |
+| USCA         |        13.78% |
+| Africa       |         6.24% |
+```
+Key Finding
 
-Logistics Insights
+Europe is the largest revenue-generating market.
 
-One of the most important findings is the high Late Delivery Rate, approximately:
+Europe, LATAM, and Pacific Asia together account for approximately 80% of total revenue.
+
+🚚 Logistics Analysis
+
+The overall Late Delivery Rate is:
 
 54.82%
 
-The dashboard also shows noticeable differences in late-delivery performance between shipping modes.
+This means that more than half of the analyzed order items are associated with a late-delivery risk.
 
-The Actual vs Scheduled Shipping analysis helps identify where actual shipping time exceeds planned shipping time.
+Late Delivery Rate by Shipping Mode
+```text
+| Shipping Mode  | Late Delivery Rate |
+| -------------- | -----------------: |
+| First Class    |              95.3% |
+| Second Class   |              76.6% |
+| Same Day       |              45.7% |
+| Standard Class |              38.1% |
+```
+Key Finding
 
-🔐 Data Privacy
+First Class has the highest late-delivery rate among the displayed shipping modes, while Standard Class has the lowest.
 
-Sensitive information was excluded from the analytical Gold layer where it did not provide business value.
+This makes shipping mode an important factor to investigate when evaluating delivery performance.
 
-Excluded fields include:
+⏱️ Actual vs Scheduled Shipping
 
+The dashboard also compares actual shipping duration with the scheduled duration.
+```text
+| Shipping Mode  |    Actual | Scheduled |
+| -------------- | --------: | --------: |
+| Standard Class |   ~4 days |   ~4 days |
+| Second Class   |   ~4 days |   ~2 days |
+| First Class    |   ~2 days |    ~1 day |
+| Same Day       | ~0.48 day |     0 day |
+```
+Key Finding
+
+Second Class shows a noticeable gap between actual and scheduled shipping duration.
+
+This suggests that delivery performance should not only be evaluated using overall late-delivery percentages, but also by comparing actual performance against the expected shipping duration.
+
+📉 Revenue Drop Investigation
+
+One of the most important findings from the analysis was the sudden decline in Revenue toward the end of the available timeline.
+
+At first glance, the Revenue Trend could suggest a significant decline in business performance.
+
+However, investigating the underlying order data reveals an important pattern.
+
+Revenue and Order Trend
+
+Revenue remains relatively stable through September 2017:
+
+July 2017 → ~992K
+August 2017 → ~997K
+September 2017 → ~1.027M
+
+Then Revenue begins to decline:
+
+October 2017 → ~966K
+November 2017 → ~563K
+December 2017 → ~453K
+January 2018 → ~298K
+
+However, the number of orders does not decline in the same way.
+
+Approximate orders:
+
+July → 1,776
+August → 1,768
+September → 1,723
+October → 2,101
+November → 2,055
+December → 2,124
+January → 2,123
+
+This is a critical observation.
+
+What changed?
+
+The average number of items per order changes significantly.
+```text
+| Period         | Approx. Items / Order |
+| -------------- | --------------------: |
+| July 2017      |                    ~3 |
+| August 2017    |                    ~3 |
+| September 2017 |                    ~3 |
+| October 2017   |                    ~1 |
+| November 2017  |                    ~1 |
+| December 2017  |                    ~1 |
+| January 2018   |                    ~1 |
+```
+At the same time, the number of distinct products appearing in transactions decreases significantly.
+
+For example:
+
+September 2017 → ~53 products
+October 2017 → ~20 products
+November 2017 → ~8 products
+December 2017 → ~14 products
+January 2018 → ~10 products
+Conclusion
+
+The Revenue decline should not automatically be interpreted as a real business decline.
+
+The combination of:
+
+Stable/increasing order volume
+Lower items per order
+Lower product coverage
+Significant revenue decline
+
+strongly suggests a potential change in data completeness or transaction granularity toward the end of the dataset.
+
+Therefore, the Revenue Drop is treated as a data-quality/data-coverage finding that requires further validation, rather than a confirmed business performance decline.
+
+This investigation was an important part of the project because it demonstrates the difference between simply identifying an anomaly and actually investigating the data behind it.
+
+5. 👨‍💼 Salesman Analysis
+
+The Salesman page focuses on sales team performance.
+
+KPIs
+```text
+| KPI                          |  Value |
+| ---------------------------- | -----: |
+| Total Salesmen               |    603 |
+| Average Revenue per Salesman | 54.82K |
+| Average Profit per Salesman  |  6.58K |
+```
+Main Visuals
+Top 10 Salesmen by Revenue
+Top 10 Salesmen by Profit
+Revenue by Region
+High Commission Rate Salesmen
+Commission Rate vs Revenue
+💡 Commission Rate vs Revenue
+
+A Scatter Chart was created to investigate the following business question:
+
+Does a higher commission rate lead to higher revenue?
+
+The analysis does not show a strong linear relationship between Commission Rate and Revenue.
+
+The approximate correlation is close to zero:
+
+r ≈ -0.03
+
+Conclusion
+
+Higher commission rates do not necessarily translate into higher revenue.
+
+This suggests that salesperson performance is likely influenced by factors beyond commission rate alone.
+
+🧮 Main DAX Measures
+
+The dashboard uses DAX measures to calculate the main business KPIs.
+
+Total Revenue
+```text
+Total Revenue =
+SUM('Gold FactOrders'[Order_Item_Total])
+Total Orders
+```text
+Total Orders =
+DISTINCTCOUNT('Gold FactOrders'[Order_Id])
+```
+Total Customers
+```text
+Total Customers =
+DISTINCTCOUNT('Gold FactOrders'[Customer_Id])
+```
+Total Quantity
+```text
+Total Quantity =
+SUM('Gold FactOrders'[Order_Item_Quantity])
+```
+Average Order Value
+```text
+Average Order Value =
+DIVIDE(
+    [Total Revenue],
+    [Total Orders],
+    0
+)
+```
+Late Delivery Rate
+```text
+Late Delivery Rate =
+DIVIDE(
+    CALCULATE(
+        [Total Orders],
+        'Gold FactOrders'[Delivery_Status] = "Late delivery"
+    ),
+    [Total Orders],
+    0
+)
+```
+🛠️ Tools & Technologies
+SQL Server
+Power BI Desktop
+DAX
+Power Query
+Data Modeling
+Data Visualization
+Business Intelligence
+Supply Chain Analytics
+🎯 Key Insights Summary
+
+The main findings from the project include:
+
+Sales
+Total Revenue: 33.05M
+Total Profit: 3.97M
+Total Orders: 66K
+Average Order Value: 502.71
 Customers
-Email
-Password
-ZIP Code
+Total Customers: 21K
+Consumer is the largest customer segment.
+Customer activity is concentrated in specific geographic areas.
+Products
+118 Products
+51 Categories
+384K Total Quantity
+Revenue is concentrated among a smaller group of products.
+Fan Shop is the highest revenue-generating department in the displayed analysis.
+Fishing is one of the strongest categories.
+Markets
+Europe is the largest revenue-generating market.
+Europe, LATAM, and Pacific Asia represent approximately 80% of revenue combined.
+Logistics
+Late Delivery Rate: 54.82%
+First Class has the highest late-delivery rate.
+Standard Class has the lowest displayed late-delivery rate.
+Second Class shows a noticeable actual-vs-scheduled shipping gap.
 Salesmen
-Email
+603 Salesmen
+Significant variation exists between salesmen in Revenue and Profit.
+Commission Rate does not show a strong relationship with Revenue.
+Data Quality
 
-The objective was to keep the analytical model focused on business-relevant attributes while reducing unnecessary sensitive data exposure.
+The sharp Revenue decline near the end of the timeline is accompanied by stable/increasing order volume but significantly fewer items per order and fewer distinct products.
 
-🧠 Key Data Modeling Decisions
-1. Star Schema
+This suggests that the decline may be related to data completeness or transaction-grain changes, and therefore requires validation before being interpreted as a real business decline.
 
-A star schema was selected to simplify Power BI analysis and improve analytical usability.
-
-2. Order Item Grain
-
-The FactOrders table operates at the order-item level.
-
-Therefore:
+📂 Dashboard Pages
 ```text
-Order_Id ≠ Order_Item_Id ≠ Product_Card_Id
+| Page              | Purpose                               |
+| ----------------- | ------------------------------------- |
+| Overview          | Overall business performance          |
+| Customer Analysis | Customer segmentation and geography   |
+| Products Analysis | Product and category performance      |
+| Sales & Logistics | Sales, markets, shipping and delivery |
+| Salesman Analysis | Sales team performance                |
 ```
-An order can contain multiple order items, while each order item is associated with a product.
+🎓 Training Project
 
-3. Separate Date Dimensions
+This project represents the final project of my training journey.
 
-Order dates and shipping dates were separated into:
+It allowed me to combine the skills I developed during the training into one complete Business Intelligence workflow:
 ```text
-DimOrderDate
-DimShippingDate
+Raw Data
+    ↓
+Bronze Layer
+    ↓
+Silver Layer
+    ↓
+Gold Layer
+    ↓
+Data Modeling
+    ↓
+DAX
+    ↓
+Power BI Dashboard
+    ↓
+Business Insights
 ```
-This allows independent time-based analysis of orders and shipping operations.
+The main lesson from the project was that effective data analysis is not only about creating visualizations.
 
-4. Product Dimension
+It is about:
 
-Product, Category, and Department information were kept together in DimProducts to keep the analytical model simple and practical for the dashboard requirements.
+Finding the pattern → Asking the right question → Investigating the data → Validating the finding → Communicating the insight.
 
-📁 Suggested Repository Structure
-```text
-SupplyChainDWH/
-│
-├── README.md
-│
-├── SQL/
-│   └── SQL QUERIES.sql
-│
-├── PowerBI/
-│   └── SupplyChainDWH.pbix
-│
-├── Data/
-│   └── Source Files
-│
-└── Screenshots/
-    ├── Overview.png
-    ├── Customer.png
-    ├── Products.png
-    ├── Sales_Logistics.png
-    └── Salesman.png
-```
-🚀 Project Workflow
+👤 Author
 
-The project workflow can be summarized as:
-```text
-1. Load raw source data
-        ↓
-2. Create Bronze layer
-        ↓
-3. Clean and standardize data
-        ↓
-4. Create Silver layer
-        ↓
-5. Validate row counts and data consistency
-        ↓
-6. Build Gold dimensional model
-        ↓
-7. Create dimensions and fact table
-        ↓
-8. Connect Gold layer to Power BI
-        ↓
-9. Create DAX measures
-        ↓
-10. Build analytical dashboard
-        ↓
-11. Extract business insights
-```
-📌 Final Outcome
+Mohamed Mahfouz
 
-The final solution transforms raw supply chain data into a structured analytical platform that can be used to answer business questions across:
+Data Analytics | Power BI | SQL | DAX | Business Intelligence
 
-Customers → Products → Sales → Salesmen → Logistics
-
-The combination of SQL Server, dimensional modeling, DAX, and Power BI provides an end-to-end BI solution from raw data ingestion to business insights.
-
-👨‍💻 Author
-
-Mohammed Mahfouz
-
-Data Analyst | SQL | Power BI | Data Warehousing
+⭐ Project Highlights
+End-to-end Supply Chain Analytics
+SQL Data Warehouse
+Bronze / Silver / Gold Architecture
+Star Schema
+Power BI Dashboard
+DAX Measures
+Customer Analysis
+Product Analysis
+Sales & Logistics Analysis
+Salesman Performance Analysis
+Revenue Trend Investigation
+Data Quality Investigation
+Business Storytelling
